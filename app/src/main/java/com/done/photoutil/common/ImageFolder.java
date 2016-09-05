@@ -1,4 +1,4 @@
-package com.done.photoutil;
+package com.done.photoutil.common;
 
 /**
  * Created by Done on 2016/9/4.
