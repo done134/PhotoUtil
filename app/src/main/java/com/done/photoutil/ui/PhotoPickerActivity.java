@@ -1,5 +1,6 @@
 package com.done.photoutil.ui;
 
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,9 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.done.photoutil.R;
+import com.done.photoutil.adapter.ImageListAdapter;
 import com.done.photoutil.common.ImageFolder;
 
 import java.io.File;
@@ -38,6 +41,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private List<ImageFolder> mImageFolders = new ArrayList<ImageFolder>();
 
     RecyclerView imageList;
+    ImageListAdapter imageAdapter;
+    ProgressDialog mPressDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,6 +55,13 @@ public class PhotoPickerActivity extends AppCompatActivity {
 
     private void initView() {
         imageList = (RecyclerView) findViewById(R.id.image_list);
+        imageAdapter = new ImageListAdapter(this);
+       /* imageAdapter.setOnItemClickListener(new ImageListAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+
+            }
+        });*/
     }
 
 
@@ -62,6 +74,8 @@ public class PhotoPickerActivity extends AppCompatActivity {
             Toast.makeText(this, "暂无外部存储", Toast.LENGTH_SHORT).show();
             return;
         }
+        mPressDialog = new ProgressDialog(this);
+        mPressDialog.show();
 
         new Thread(new Runnable() {
             @Override
@@ -74,7 +88,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
                 Cursor mCursor = mContentResolver.query(imageUri, null, MediaStore.Images.Media.MIME_TYPE + "=? or " + MediaStore.Images.Media.MIME_TYPE + "=? or " + MediaStore.Images.Media.MIME_TYPE + "=?",
                         new String[]{"image/jpeg", "image/png", "image/gif"},
                         MediaStore.Images.Media.DATE_MODIFIED);
-                Log.e("TAG", mCursor.getCount() + "");
+                Log.e("TAG", String.valueOf(mCursor.getCount()));
 
                 while (mCursor.moveToNext()) {
                     // 获取图片的路径
@@ -124,6 +138,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
                 // 通知Handler扫描图片完成
             }
         }).start();
+        mHandler.sendMessage(Message.obtain());
     }
 
     //图片扫描完成后用来处理的handler
@@ -132,8 +147,12 @@ public class PhotoPickerActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             data2View();
+            if (mPressDialog != null && mPressDialog.isShowing()) {
+                mPressDialog.dismiss();
+            }
         }
     };
+
 
     /**
      * 将数据显示在view上
@@ -141,5 +160,7 @@ public class PhotoPickerActivity extends AppCompatActivity {
     private void data2View() {
         //Do Nothing Now.
     }
+
+
 
 }
